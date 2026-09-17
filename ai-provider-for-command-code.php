@@ -5,7 +5,7 @@
  * Description:       Command Code provider for the WordPress AI Client.
  * Requires at least: 6.9
  * Requires PHP:      7.4
- * Version:           1.0.3
+ * Version:           1.0.4
  * Author:            Bestony
  * Author URI:        https://github.com/bestony
  * License:           GPL-2.0-or-later
