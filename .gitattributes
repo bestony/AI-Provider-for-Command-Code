@@ -2,3 +2,4 @@
 /.gitattributes export-ignore
 /scripts export-ignore
 /README.md export-ignore
+/README.zh-CN.md export-ignore

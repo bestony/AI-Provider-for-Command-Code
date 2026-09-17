@@ -1,5 +1,7 @@
 # AI Provider for Command Code
 
+**English** · [简体中文](README.zh-CN.md)
+
 [Command Code](https://commandcode.ai/docs/provider) as a provider for the WordPress AI Client:
 Claude, GPT, Gemini and leading open models through one API key.
 
