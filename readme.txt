@@ -157,6 +157,12 @@ This service is provided by Command Code:
 
 == Changelog ==
 
+= 1.0.6 =
+* Stop reading the `connectors_ai_commandcode_api_key` option directly. Whether a Command Code
+  credential is configured is now asked of the AI Client, so the plugin never handles the key the
+  user saved in Settings → Connectors. Behaviour is unchanged: the `COMMANDCODE_API_KEY` constant and
+  environment variable still work.
+
 = 1.0.3 =
 * Document the external service in the readme: the endpoints contacted, what data is sent and when,
   and links to Command Code's Terms of Service and Privacy Policy.
@@ -175,6 +181,9 @@ This service is provided by Command Code:
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.6 =
+The stored Command Code API key is no longer read by the plugin; the AI Client reports whether a credential is configured.
 
 = 1.0.3 =
 Adds the External services documentation and the GPL license file.

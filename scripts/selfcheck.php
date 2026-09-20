@@ -133,6 +133,7 @@ if ($sdkPath !== null && is_file($sdkPath . '/polyfills.php')) {
 
     use_command_code_sdk_checks();
 } else {
+    check(!CommandCodeConfig::hasCredentials(), 'without the AI Client there are no credentials to report');
     fwrite(STDOUT, "skip  SDK-dependent checks (pass --sdk=<path to php-ai-client/src> to run them)\n");
 }
 
@@ -273,6 +274,19 @@ function use_command_code_sdk_checks(): void
             return new \WordPress\AiClient\Providers\Http\DTO\Response(200, [], json_encode($this->queue));
         }
     };
+
+    // Credential detection: asks the AI Client, never reads the Connectors option. Registering a
+    // provider hooks up a transporter, so that has to be in place first.
+    $registry = \WordPress\AiClient\AiClient::defaultRegistry();
+    $registry->setHttpTransporter($transporter);
+    check(!CommandCodeConfig::hasCredentials(), 'no credentials before the AI Client is given one');
+    $registry->registerProvider(\CommandCode\AiProvider\Provider\CommandCodeProvider::class);
+    check(!CommandCodeConfig::hasCredentials(), 'a registered provider is not yet a credentialed one');
+    $registry->setProviderRequestAuthentication(
+        CommandCodeConfig::PROVIDER_ID,
+        new \WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication('test-key')
+    );
+    check(CommandCodeConfig::hasCredentials(), 'a key handed to the AI Client counts as credentials');
 
     // Claude: Anthropic Messages route, with a tool call and usage reporting.
     $anthropicModel = new \CommandCode\AiProvider\Models\CommandCodeAnthropicTextGenerationModel(

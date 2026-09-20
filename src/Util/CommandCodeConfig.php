@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace CommandCode\AiProvider\Util;
 
+use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
 
 /**
@@ -205,27 +206,29 @@ final class CommandCodeConfig
     }
 
     /**
-     * Whether a Command Code credential is present.
+     * Whether a Command Code credential is available to the AI Client.
      *
-     * A purely local check (environment, constant, option) so it can be called from filters without
-     * triggering a network request.
+     * Asks the AI Client instead of reading the credential itself: the key was given to WordPress by
+     * the user, so the option is not this plugin's to read. The registry carries an authentication
+     * instance once the user saved a key in Settings → Connectors (core hands it over on `init`) or
+     * set `COMMANDCODE_API_KEY`, which the SDK resolves when the provider is registered.
+     *
+     * Still a purely local check — no network request — so it can be called from filters.
      *
      * @return bool Whether credentials are configured.
      */
     public static function hasCredentials(): bool
     {
-        if (self::env('COMMANDCODE_API_KEY') !== '') {
-            return true;
+        if (!class_exists(AiClient::class)) {
+            return false;
         }
 
-        if (function_exists('get_option')) {
-            $option = get_option('connectors_ai_commandcode_api_key', '');
-            if (is_string($option) && $option !== '') {
-                return true;
-            }
+        $registry = AiClient::defaultRegistry();
+        if (!$registry->hasProvider(self::PROVIDER_ID)) {
+            return false;
         }
 
-        return false;
+        return $registry->getProviderRequestAuthentication(self::PROVIDER_ID) !== null;
     }
 
     /**
