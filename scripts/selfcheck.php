@@ -107,7 +107,7 @@ check(CommandCodeModelCatalog::compareModelIds('gpt-5.4', 'gpt-5.4') === 0, 'com
 // --- Configuration defaults. ------------------------------------------------------------------
 check(CommandCodeConfig::getBaseUrl() === 'https://api.commandcode.ai/provider/v1', 'default base URL');
 check(CommandCodeConfig::getRequestTimeout() >= 60.0, 'request timeout is long enough for an LLM call');
-check(CommandCodeConfig::getUserAgent() === 'ai-provider-for-command-code/1.0.5', 'user agent identifies the plugin');
+check(CommandCodeConfig::getUserAgent() === 'ai-provider-for-command-code/1.0.6', 'user agent identifies the plugin');
 check(!CommandCodeConfig::isZeroDataRetentionEnabled(), 'ZDR is off unless asked for');
 
 // --- Request building, against the real SDK when one is available. ----------------------------
