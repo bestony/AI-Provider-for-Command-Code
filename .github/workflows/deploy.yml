@@ -1,0 +1,36 @@
+name: Deploy to WordPress.org
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag matches plugin version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          header=$(grep -m1 '^ \* Version:' ai-provider-for-command-code.php | awk '{print $3}')
+          stable=$(grep -m1 '^Stable tag:' readme.txt | awk '{print $3}')
+          if [ "$tag" != "$header" ] || [ "$tag" != "$stable" ]; then
+            echo "tag $tag != header $header / stable tag $stable" >&2
+            exit 1
+          fi
+
+      - name: Deploy to WordPress.org
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ai-provider-for-command-code
+          ASSETS_DIR: .wordpress-org
