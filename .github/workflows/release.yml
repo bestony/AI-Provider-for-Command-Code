@@ -16,16 +16,33 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify tag matches plugin version
+      - name: Verify tag, plugin header, stable tag, config constant and changelog agree
         run: |
           set -euo pipefail
           tag="${GITHUB_REF_NAME#v}"
           header=$(grep -m1 '^ \* Version:' ai-provider-for-command-code.php | awk '{print $3}')
           stable=$(grep -m1 '^Stable tag:' readme.txt | awk '{print $3}')
-          if [ "$tag" != "$header" ] || [ "$tag" != "$stable" ]; then
-            echo "tag $tag != header $header / stable tag $stable" >&2
+          # The User-Agent is built from this constant, so it drifts silently if it is not checked.
+          config=$(perl -ne "print \$1 if /const VERSION = '([\d.]+)'/" src/Util/CommandCodeConfig.php)
+          for pair in "header:$header" "stable tag:$stable" "config VERSION:$config"; do
+            name="${pair%%:*}"
+            value="${pair#*:}"
+            if [ "$tag" != "$value" ]; then
+              echo "tag $tag != $name $value" >&2
+              exit 1
+            fi
+          done
+          # A release with no changelog entry publishes empty release notes, so fail instead.
+          if ! grep -qx "= ${tag} =" readme.txt; then
+            echo "readme.txt has no '= ${tag} =' changelog entry" >&2
             exit 1
           fi
+
+      - name: Verify the plugin's own self-check passes
+        run: |
+          set -euo pipefail
+          # No --sdk: the SDK is not vendored, so only the WordPress-free checks can run here.
+          php scripts/selfcheck.php
 
       - name: Build plugin zip
         run: |
@@ -33,8 +50,10 @@ jobs:
           slug=ai-provider-for-command-code
           zip="build/$slug-${GITHUB_REF_NAME}.zip"
           mkdir -p build
+          # .gitattributes export-ignores scripts/, README.md and the CI files.
           git archive --format=zip --prefix="$slug/" -o "$zip" HEAD
           unzip -l "$zip" | grep -q "$slug/$slug.php"
+          unzip -l "$zip" | grep -q "$slug/assets/images/commandcode.svg"
 
       - name: Compose release notes
         run: |
